@@ -13,19 +13,24 @@ namespace http
 	{
 		namespace requestHandler
 			{
-				IMPLEMENT_HTTP_REQUEST_HANDLER( GET_TEST_PAGE ) ;
+				IMPLEMENT_HTTP_REQUEST_HANDLER( returnDefaultHeader ) ; ///< Default HEAD handler
+				IMPLEMENT_HTTP_REQUEST_HANDLER( returnTestPage			) ; ///< Default GET  handler
 			}
 	}
 
 // ACTUAL IMPLEMENTATION BELOW
 
-IMPLEMENT_HTTP_REQUEST_HANDLER( http::requestHandler::GET_TEST_PAGE )
+IMPLEMENT_HTTP_REQUEST_HANDLER( http::requestHandler::returnTestPage )
 	{
 		const auto & target = requestMessage.header.requestTarget ;
 
 		responseMessage.payload =
 			" Hello from Arduino ! \n"
-			" Test GET Request Handler written by Giuseppe Masino\n"
 			"\n"
-			" The request target was " + target + "\n\n\n" ;
+			" The request target was " + target + "\n"
+			"\n"
+			" This test page is offered by the testPage Handler\n"
+			" part of the Arduino_HTTP/1.1 library by qub1750ul\n"
+			"\n"
+			" https://github.com/qub1750ul/Arduino_HTTP\n\n" ;
 	}

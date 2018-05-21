@@ -48,6 +48,10 @@ http::Server::Server()
 		defaultResponseHeader.version			= "1.1"										;
 		defaultResponseHeader.connection	= "close"									;
 		defaultResponseHeader.server			= "Arduino libhttp/1.0.0"	;
+
+		// Set default request handlers
+		GET_requestHandler	= requestHandler::returnTestPage			;
+		HEAD_requestHandler	= requestHandler::returnDefaultHeader	;
 	}
 
 template < class Client_t >
