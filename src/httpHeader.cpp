@@ -90,13 +90,30 @@ http::Response_t::operator Response() const
 		return responseId ;
 	}
 
-String headerToString( const uint8_t & fieldN,  const http::Field * const * fieldArray )
+/**
+ * Main serialization function for HTTP header classes
+ * Here is where much of the job is done
+ *
+ * @param fieldN			numeber of fields available in the HTTP header
+ * @param fieldArray	pointer to the fieldArray member of the HTTP header object
+ */
+String headerToString( const uint8_t & fieldN, const http::Field * const * fieldArray )
 	{
+		// String that holds the serialized header
 		String header ;
 
-		const http::Field & pragma = * ( fieldArray[ 1 ] ) ;
+		/* NOTE:
+		 * pragma is a special field that is used to store all the actual pragma paramaters
+		 * It is known to be the first element of fieldArray
+		 * This reference is made for convenience
+		 *
+		 * As it needs to be processed in a different way than other fields,
+		 * all loops that iterate over fields start at index 1 to not touch it
+		 */
+		const http::Field & pragma = * ( fieldArray[ 0 ] ) ;
 
-		auto formalizeField = [ & ]( const uint8_t n )
+		// Local function that serializes the header field at index n of fieldArray
+		auto serializeField = [ & ]( const uint8_t n )
 			{
 				const http::Field & field = * ( fieldArray[ n ] ) ;
 
@@ -104,37 +121,53 @@ String headerToString( const uint8_t & fieldN,  const http::Field * const * fiel
 					field.tag + " " + field.value + "\n" : "" ;
 			} ;
 
-		// Begin header generation
+		// Begin header serialization
 
-		// The first row changes if this is for a response or a request
-		// so delegate this to the proper function overloads
-		// Instead, the other fields will be processed here
+		/* NOTE:
+		 * The first row serialization method changes if this
+		 * is for a response or a request, so delegate this
+		 * to the proper function overloads.
+		 *
+		 * Instead, the other fields will be serialized here
+		 *
+		 * NOTE2:
+		 * The serializeField function is used only in the following loop
+		 * but in this way the whole thing is more expressive
+		 */
+		for( auto n = 1 ; n < fieldN ; ++ n )
+			header += serializeField( n ) ;
 
-		for( auto n = 0 ; n < fieldN ; ++ n )
-			header += formalizeField( n ) ;
-
-		// Formalize and append pragma parameters to the header
+		// Serialize and append pragma parameters to the header
 		{
 			uint8_t subStrCount = 0 ;
 			uint8_t newStrCount = 0 ;
 
+			/* NOTE: ( pragma field structure )
+			 * The pragma field value is a concatenation of the values of
+			 * all the actual pragma fields, each terminated with a \n
+			 */
+
+			// Count the \n terminated substrings and create an array that can hold them
 			for( auto ptr = pragma.value.begin() ; ptr < pragma.value.end() ; ++ptr )
 				if( * ptr == '\n' ) ++subStrCount ;
 
 			String pragmaArray[ subStrCount ] ;
 
+			// Extract the individual pragma field values
 			for( auto ptr = pragma.value.begin() ; ptr < pragma.value.end() ; ++ptr )
 				{
 					pragmaArray[ newStrCount ] += *ptr ;
 					if( *ptr == '\n' ) ++newStrCount ;
 				}
 
+			// Once extraction is complete, serialize them all
 			for( newStrCount = 0 ; newStrCount < subStrCount ; ++newStrCount )
 				header += pragma.tag + pragmaArray[ newStrCount ] ;
 		}
 
+		// Field serialization complete
 		// Append header termination sequence
-		header += "\n" ;
+		header += "\r\n" ;
 
 		return header ;
 	}
@@ -147,6 +180,7 @@ http::ResponseHeader & http::ResponseHeader::operator = ( const ResponseHeader &
 		return * this ;
 	}
 
+/// Serialization method for HTTP response header classes
 http::ResponseHeader::operator String() const
 	{
 		String partialHeader = headerToString( fieldN, fieldArray ) ;
@@ -155,6 +189,7 @@ http::ResponseHeader::operator String() const
 		return response + partialHeader ;
 	}
 
+/// Serialization method for HTTP request header classes
 http::RequestHeader::operator String() const
 	{
 		String partialHeader = headerToString( fieldN, fieldArray ) ;

@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Header file containing the HTTP Server class and the HTTP parser
+ */
+
 #pragma once
 
 #include "httpRemoteClient.hpp"
@@ -11,6 +16,7 @@ namespace http
 		RequestMessage parseRawMessageFrom( const http::RemoteClient < Client_t > & ) ;
 	}
 
+/// The HTTP Server Class, managing the requests from remote clients
 class http::Server
 	{
 		public:
@@ -38,9 +44,9 @@ class http::Server
 			#undef DECLARE_REQUEST_HANDLER_PTR
 	} ;
 
-/******************
- * IMPLEMENTATION *
- ******************/
+// ******************
+// * IMPLEMENTATION *
+// ******************
 
 http::Server::Server()
 	{
@@ -54,6 +60,14 @@ http::Server::Server()
 		HEAD_requestHandler	= requestHandler::returnDefaultHeader	;
 	}
 
+/**
+ * Method used to reply to remote client requests
+ * The request type and the appropriate handler are automatically deduced from
+ * the request header
+ *
+ * @param Client_t	The class representing the socket of the transport layer
+ * @param client		A RemoteClient object representing the remote client
+ */
 template < class Client_t >
 void http::Server::replyTo( const RemoteClient < Client_t > & client )
 	{
@@ -66,11 +80,10 @@ void http::Server::replyTo( const RemoteClient < Client_t > & client )
 			responseMessage.header.responseCode = Response::BAD_REQUEST ;
 			else
 				{
-					// Extract request method from the http message
 					const Request & requestMethod = inboundMessage.header.requestMethod ;
 
 					// Select the appropriate function to handle the request
-					auto handleRequest =
+					auto requestHandler =
 						requestMethod == Request::OPTIONS	? OPTIONS_requestHandler	:
 						requestMethod == Request::GET			? GET_requestHandler			:
 						requestMethod == Request::HEAD		? HEAD_requestHandler			:
@@ -80,15 +93,21 @@ void http::Server::replyTo( const RemoteClient < Client_t > & client )
 						requestMethod == Request::TRACE		? TRACE_requestHandler		:
 						requestMethod == Request::CONNECT	? CONNECT_requestHandler	: nullptr ;
 
-						if( handleRequest == nullptr )
-							responseMessage.header.responseCode = Response::BAD_REQUEST ;
-							else handleRequest( inboundMessage, responseMessage ) ;
+					if( requestHandler == nullptr )
+						responseMessage.header.responseCode = Response::BAD_REQUEST ;
+						else requestHandler( inboundMessage, responseMessage ) ;
 				}
 
 		client.write( responseMessage ) ;
 		client.close() ;
 	}
 
+/**
+ * The parsing function used to deserialize incoming HTTP messages
+ *
+ * @param Client_t	The class representing the socket of the transport layer
+ * @param client		A RemoteClient object representing the remote client
+ */
 template < class Client_t >
 http::RequestMessage http::parseRawMessageFrom( const http::RemoteClient < Client_t > & client )
 	{
@@ -143,17 +162,20 @@ http::RequestMessage http::parseRawMessageFrom( const http::RemoteClient < Clien
 				ifMatchesThenAssign( Request::PUT			) :
 				ifMatchesThenAssign( Request::TRACE		) : Request::INVALID ;
 
-			#undef ifMatches
+			#undef ifMatchesThenAssign
 		}
 
 		requestMessage.header.requestTarget = getNextWord() ;
 		requestMessage.header.version				= getNextWord() ;
 
-		if( requestMessage.header.requestMethod == Request::INVALID )
-			requestMessage.parsingFailed = true ;
-
-		if( requestMessage.header.requestTarget == "" )
-			requestMessage.parsingFailed = true ;
+		if(
+				requestMessage.header.requestMethod		== Request::INVALID ||
+				requestMessage.header.requestTarget	== ""
+			)
+			{
+				requestMessage.parsingFailed = true ;
+				return requestMessage ;
+			}
 
 		// Parse header fields until the header-payload separator or end-of-message is encoutered
 		while( charBuffer != '\r' && client.available() )

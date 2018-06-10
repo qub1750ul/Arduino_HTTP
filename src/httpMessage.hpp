@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Header file containing HTTP message related structures and functions
+ */
+
 #pragma once
 
 #include "httpHeader.hpp"
@@ -8,6 +13,7 @@ namespace http
 		struct ResponseMessage ;
 	}
 
+/// Struct representing a whole HTTP request message
 struct http::RequestMessage
 	{
 		RequestHeader header ;
@@ -15,6 +21,7 @@ struct http::RequestMessage
 		bool parsingFailed = false ;
 	} ;
 
+/// Struct representing a whole HTTP response message
 struct http::ResponseMessage
 	{
 		ResponseMessage(

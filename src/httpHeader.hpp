@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Header file containing HTTP header related structures and functions
+ */
+
 #pragma once
 
 #include <Arduino.h>
@@ -13,6 +18,10 @@ namespace http
 		struct RequestHeader ;
 	}
 
+/**
+ * Enum class representing a HTTP request method
+ * It is intended to be used only as an assignment parameter for http::Request_t
+ */
 enum class http::Request
 	{
 		INVALID = 0 , // Internally used value
@@ -26,6 +35,10 @@ enum class http::Request
 		CONNECT
 	} ;
 
+/**
+ * Enum class representing a HTTP response code
+ * It is intended to be used only as an assignment parameter for http::Request_t
+ */
 enum class http::Response
 	{
 		// Informational
@@ -82,6 +95,11 @@ enum class http::Response
 		UNAVAILABLE_FOR_LEGAL_REASONS
 	} ;
 
+/**
+ * Wrapper class for http::Request
+ * it provides a strong type for representing a HTTP request method
+ * in addition to conversion operators to String and to enum type
+ */
 class http::Request_t
 	{
 		public:
@@ -98,6 +116,11 @@ class http::Request_t
 			Request requestId = Request::INVALID ;
 	} ;
 
+/**
+ * Wrapper class for http::Response
+ * it provides a strong type for representing a HTTP response code
+ * in addition to conversion operators to String and to enum type
+ */
 class http::Response_t
 	{
 		public:
@@ -119,6 +142,13 @@ class http::Response_t
 			Response responseId ;
 	} ;
 
+/**
+ * A http header field
+ * This struct is intended to use only in http header classes
+ *
+ * The tag can only be defined at the time of the instantiation,
+ * while the value can be assigned at any time by the assignment operator
+ */
 struct http::Field
 	{
 		explicit Field( const String & tag_ ) : tag( tag_ ) {}
@@ -136,6 +166,10 @@ struct http::Field
 		String value ;
 	} ;
 
+/**
+ * A struct representing a HTTP response header
+ * It can be serialized by conversion to String
+ */
 struct http::ResponseHeader
 	{
 		ResponseHeader & operator = ( const ResponseHeader & ) ;
@@ -172,16 +206,29 @@ struct http::ResponseHeader
 
 		operator String() const ;
 
+		/* Member that defines the size of fieldArray,
+		 * that is equal to the number of fields available in the header.
+		 * Also used in serialization procedures
+		 */
 		static constexpr uint8_t fieldN = 17 ;
 
+		// This array allows to access header fields in a iterative way.
+		// Used in serialization procedures
 		const Field * const fieldArray[ fieldN ]
 			{
+				// pragma needs to be the first element of the array
+				// to corretly execute the serialization
+				& pragma ,
 				& age , & cacheControl , & expires , & date , & location , & retryAfter ,
 				& vary , & warning , & ETag , & lastModified , & WWWAuthenticate ,
 				& proxyAuthenticate , & acceptRanges , & allow , & server , & connection
 			} ;
 	} ;
 
+/**
+ * A struct representing a HTTP request header
+ * It can be serialized by conversion to String
+ */
 struct http::RequestHeader
 	{
 		RequestHeader & operator = ( const RequestHeader & ) ;
@@ -224,12 +271,21 @@ struct http::RequestHeader
 
 		operator String() const ;
 
+		/* Member that defines the size of fieldArray,
+		 * that is equal to the number of fields available in the header.
+		 * Also used in serialization procedures
+		 */
 		static constexpr uint8_t fieldN = 22 ;
 
+		// This array allows to access header fields in a iterative way.
+		// Used in serialization procedures
 		Field * const fieldArray[ fieldN ]
 			{
+				// pragma needs to be the first element of the array
+				// to corretly execute the serialization
+				& pragma ,
 				& connection , & cacheControl , & expect , & host ,
-				& maxForwards , & pragma , & range , & textEncodings , & ifMatch ,
+				& maxForwards , & range , & textEncodings , & ifMatch ,
 				& ifNoneMatch , & ifModifiedSince , & ifUnmodifiedSince , & ifRange ,
 				& acceptedTypes , & acceptedCharset , & acceptedEncoding ,
 				& acceptedLanguage , & authorization , & proxyAuth , & from ,

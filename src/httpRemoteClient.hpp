@@ -8,6 +8,14 @@ namespace http
 			class RemoteClient ;
 	}
 
+/**
+ * Template class representing a socket between the HTTP server and a remote client
+ *
+ * Pratically it is an interface that adapts the API of the trasport protocol
+ * allowing the whole library to be transport protocol indipendent
+ *
+ * @param Client_t The class representing the socket of the transport layer
+ */
 template < class Client_t >
 class http::RemoteClient
 	{
