@@ -20,6 +20,12 @@ namespace http
 
 // ACTUAL IMPLEMENTATION BELOW
 
+IMPLEMENT_HTTP_REQUEST_HANDLER( http::requestHandler::returnDefaultHeader )
+	{
+		// Do nothing, as the default response message has the default header and
+		// empty payload
+	}
+
 IMPLEMENT_HTTP_REQUEST_HANDLER( http::requestHandler::returnTestPage )
 	{
 		const auto & target = requestMessage.header.requestTarget ;
