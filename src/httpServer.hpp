@@ -51,9 +51,9 @@ class http::Server
 http::Server::Server()
 	{
 		// Set default header
-		defaultResponseHeader.version			= "1.1"										;
-		defaultResponseHeader.connection	= "close"									;
-		defaultResponseHeader.server			= "Arduino libhttp/1.0.0"	;
+		defaultResponseHeader.version			= "1.1"		;
+		defaultResponseHeader.connection	= "close"	;
+		defaultResponseHeader.server			= "Arduino_HTTP/1.0.0 Arduino" ;
 
 		// Set default request handlers
 		GET_requestHandler	= requestHandler::returnTestPage			;
