@@ -80,6 +80,7 @@ void http::Server::replyTo( const RemoteClient < Client_t > & client )
 			responseMessage.header.responseCode = Response::BAD_REQUEST ;
 			else
 				{
+					bool requestMethodIsInvalid = false ;
 					const Request & requestMethod = inboundMessage.header.requestMethod ;
 
 					// Select the appropriate function to handle the request
@@ -91,11 +92,14 @@ void http::Server::replyTo( const RemoteClient < Client_t > & client )
 						requestMethod == Request::PUT			? PUT_requestHandler			:
 						requestMethod == Request::DELETE	? DELETE_requestHandler		:
 						requestMethod == Request::TRACE		? TRACE_requestHandler		:
-						requestMethod == Request::CONNECT	? CONNECT_requestHandler	: nullptr ;
+						requestMethod == Request::CONNECT	? CONNECT_requestHandler	:
+						( requestMethodIsInvalid = true , nullptr ) ;
 
-					if( requestHandler == nullptr )
+					if( requestMethodIsInvalid )
 						responseMessage.header.responseCode = Response::BAD_REQUEST ;
-						else requestHandler( inboundMessage, responseMessage ) ;
+						else if( requestHandler == nullptr )
+							responseMessage.header.responseCode = Response::METHOD_NOT_ALLOWED ;
+							else requestHandler( inboundMessage, responseMessage ) ;
 				}
 
 		client.write( responseMessage ) ;
