@@ -19,6 +19,11 @@ struct http::RequestMessage
 		RequestHeader header ;
 		String payload ;
 		bool parsingFailed = false ;
+
+		operator String() const
+			{
+				return ( String ) header + payload + "\n" ;
+			}
 	} ;
 
 /// Struct representing a whole HTTP response message
