@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed ###
 
-- A bug that generate a BAD_REQUEST response if the request method is not allowed by the server
+- A bug that generated a BAD_REQUEST response if the request method is not allowed by the server
+- A bug that generated a link-time error when using deserialization functions
 
 ## [1.0.0] - 2018-06-15 ##
 

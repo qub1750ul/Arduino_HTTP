@@ -183,7 +183,7 @@ http::ResponseHeader & http::ResponseHeader::operator = ( const ResponseHeader &
 /// Serialization method for HTTP response header classes
 http::ResponseHeader::operator String() const
 	{
-		String partialHeader = headerToString( fieldN, fieldArray ) ;
+		String partialHeader = headerToString( ( uint8_t ) fieldN, fieldArray ) ;
 		String response = "HTTP/" + version + " " + ( String ) responseCode + "\n" ;
 
 		return response + partialHeader ;
@@ -192,7 +192,7 @@ http::ResponseHeader::operator String() const
 /// Serialization method for HTTP request header classes
 http::RequestHeader::operator String() const
 	{
-		String partialHeader = headerToString( fieldN, fieldArray ) ;
+		String partialHeader = headerToString( ( uint8_t ) fieldN, fieldArray ) ;
 		String request =
 			( String ) requestMethod + " " + requestTarget + " " + version + "\n" ;
 
