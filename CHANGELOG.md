@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added ###
 
 - This Changelog
+- Event log functionality
 
 ### Fixed ###
 
