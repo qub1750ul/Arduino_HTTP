@@ -34,7 +34,7 @@ void loop()
 
 		// If a request has been made from a remote client over the Ethernet connection
 		// create a RemoteClient object that represents it
-		http::RemoteClient < EthernetClient > remoteClient = tcpServer.available() ;
+		http::RemoteClient < EthernetClient > remoteClient = ethernetServer.available() ;
 
 		// Then pass the object to the server
 		httpServer.replyTo( remoteClient ) ;
