@@ -119,7 +119,7 @@ void http::Server::replyTo( const RemoteClient < Client_t > & client )
 					else if( requestHandler == nullptr )
 					{
 						logBuffer << "[FAIL] Request method not allowed by this server" ;
-						responseCode = Response::METHOD_NOT_ALLOWED ;
+						responseCode = Response::NOT_IMPLEMENTED ;
 					}
 					else requestHandler( inboundMessage, responseMessage ) ;
 			}
