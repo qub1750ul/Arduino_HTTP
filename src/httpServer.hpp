@@ -7,6 +7,7 @@
 
 #include "httpRemoteClient.hpp"
 #include "httpRequestHandler.hpp"
+#include "httpLog.hpp"
 
 namespace http
 	{
@@ -19,6 +20,8 @@ namespace http
 /// The HTTP Server Class, managing the requests from remote clients
 class http::Server
 	{
+		http::Log logBuffer ;
+
 		public:
 
 			Server() ;
@@ -42,6 +45,8 @@ class http::Server
 			DECLARE_REQUEST_HANDLER_PTR( CONNECT_requestHandler	) ;
 
 			#undef DECLARE_REQUEST_HANDLER_PTR
+
+			http::LogView log = http::LogView( logBuffer ) ;
 	} ;
 
 // ******************
@@ -73,30 +78,53 @@ void http::Server::replyTo( const RemoteClient < Client_t > & client )
 	{
 		if( ! client.available() ) return ;
 
+		logBuffer << "[INFO] New client connected" ;
+
 		RequestMessage inboundMessage = parseRawMessageFrom( client ) ;
+
+		logBuffer << "---------------------" ;
+		logBuffer << inboundMessage ;
+		logBuffer << "---------------------" ;
+
 		ResponseMessage responseMessage( defaultResponseHeader ) ;
+		const Response_t & responseCode = responseMessage.header.responseCode ;
 
 		if( inboundMessage.parsingFailed )
-			responseMessage.header.responseCode = Response::BAD_REQUEST ;
+			{
+				logBuffer << "[ERROR] inboundMessage parsing failed" ;
+				responseCode = Response::BAD_REQUEST ;
+			}
 			else
-				{
-					const Request & requestMethod = inboundMessage.header.requestMethod ;
+			{
+				const Request & requestMethod = inboundMessage.header.requestMethod ;
+				bool requestMethodIsInvalid = false ;
 
-					// Select the appropriate function to handle the request
-					auto requestHandler =
-						requestMethod == Request::OPTIONS	? OPTIONS_requestHandler	:
-						requestMethod == Request::GET			? GET_requestHandler			:
-						requestMethod == Request::HEAD		? HEAD_requestHandler			:
-						requestMethod == Request::POST		? POST_requestHandler			:
-						requestMethod == Request::PUT			? PUT_requestHandler			:
-						requestMethod == Request::DELETE	? DELETE_requestHandler		:
-						requestMethod == Request::TRACE		? TRACE_requestHandler		:
-						requestMethod == Request::CONNECT	? CONNECT_requestHandler	: nullptr ;
+				// Select the appropriate function to handle the request
+				auto requestHandler =
+					requestMethod == Request::OPTIONS	? OPTIONS_requestHandler	:
+					requestMethod == Request::GET			? GET_requestHandler			:
+					requestMethod == Request::HEAD		? HEAD_requestHandler			:
+					requestMethod == Request::POST		? POST_requestHandler			:
+					requestMethod == Request::PUT			? PUT_requestHandler			:
+					requestMethod == Request::DELETE	? DELETE_requestHandler		:
+					requestMethod == Request::TRACE		? TRACE_requestHandler		:
+					requestMethod == Request::CONNECT	? CONNECT_requestHandler	:
+						( requestMethodIsInvalid = true , nullptr ) ;
 
-					if( requestHandler == nullptr )
-						responseMessage.header.responseCode = Response::BAD_REQUEST ;
-						else requestHandler( inboundMessage, responseMessage ) ;
-				}
+				if( requestMethodIsInvalid )
+					{
+						logBuffer << "[ERROR] Invalid request method" ;
+						responseCode = Response::BAD_REQUEST ;
+					}
+					else if( requestHandler == nullptr )
+					{
+						logBuffer << "[FAIL] Request method not allowed by this server" ;
+						responseCode = Response::NOT_IMPLEMENTED ;
+					}
+					else requestHandler( inboundMessage, responseMessage ) ;
+			}
+
+		logBuffer << "[INFO] Sending a " + ( String ) responseCode + " response" ;
 
 		client.write( responseMessage ) ;
 		client.close() ;
